@@ -62,6 +62,8 @@ void config_stepper(){
     //Configuration des broches de sortie
     TRISCbits.TRISC1 = 0; //RPC1 en output, PMODA_2 sur Basys, sortie step
     TRISCbits.TRISC2 = 0; //RPC2 en output, PMODA_1 sur Basys, sortie direction
+    TRISCbits.TRISC3 = 0; //RPC3 en output, PMODA_7 sur basys, sortie reset
+    TRISCbits.TRISC4 = 0; //RPC4 en output, PMODA_3 sur Basys, sortie sleep
     
     //Configuration de broche d'entree
     //A configurer, entree de limit switch
@@ -70,22 +72,25 @@ void config_stepper(){
     
     LATCbits.LATC1 = 0; //RPC1 initialise a 0
     LATCbits.LATC2 = 0; //RPC2 initialise a 0
+    LATCbits.LATC3 = 1; //Reset a 1 (active low, donc reset disable)
+    LATCbits.LATC4 = 1; //Sleep a 0 (active low, donc sleep enable)
     
     //Configuration de Timer 2
     T2CON = 0;
     T2CONbits.TCKPS = 0b111; //prescaler: N = 256
     
     TMR2 = 0; //Initialise compteur du timer a 0
-    PR2 = 1874; 
+    PR2 = 312; 
     // PR2 = (fPB / (N * fsignal)) - 1 = 48 000 000 / (256 * 100) - 1 = 1874
     // a 100 Hz, le moteur aura une vitesse de 0.5 tour/s (1 tour = 200 pas)
+    // 600 Hz = 3 tours/s et PR2 = 312
     
     //Configuration de OC3
     OC3CON = 0; //Initialise le OC3 a 0. Configure le timer 2 comme reference
     OC3CONbits.OCM = 0b110; //Mode sans detection de faute
     
     OC3R = 0; //rapport cyclique initial
-    OC3RS = 937; // PR2 * 50% de rapport cyclique donne 937
+    OC3RS = 156; // PR2 * 50% de rapport cyclique
     
     
     //Configuration d'interrupt
@@ -114,6 +119,8 @@ void config_stepper(){
 **/
 void stepper_home(){
     
+    LATCbits.LATC4 = 1; //Sleep mode off
+    
     LATCbits.LATC2 = 1;     //Direction descendre
     
     //Demarrage du Timer 2
@@ -132,6 +139,8 @@ void stepper_home(){
    
     position_pas = 0;
     
+    
+    LATCbits.LATC4 = 0; //Sleep mode on
     
     //Fin de la fonction
 }
@@ -155,6 +164,8 @@ void stepper_home(){
  * Aucun return.
 **/
 void stepper_move(bool direction, uint8_t dst){
+    
+    LATCbits.LATC4 = 1; //Sleep mode off
     
     direction_globale = direction;
     
@@ -205,6 +216,9 @@ void stepper_move(bool direction, uint8_t dst){
         T2CONbits.ON = 0;
         
     }
+    
+    
+    LATCbits.LATC4 = 0; //Sleep mode on
     
     //Fin de la fonction
 }
