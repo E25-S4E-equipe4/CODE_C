@@ -17,7 +17,7 @@
 #include <xc.h>
 #include "sensorIR.h"
 #include "config.h"
-#include "config_bits.h"
+//#include "config_bits.h"
 
 #define NB_ECH 100
 
@@ -57,7 +57,7 @@ void config_IR(void) {
     AD1CON3bits.ADCS = 2;      // ADC clock divisor
     AD1CON3bits.SAMC = 4;      // Sample time
 
-    AD1CSSL = (1 << 16) | (1 << 19);  // Sélection des canaux AN14 et AN19
+    AD1CSSL = (1 << 16) | (1 << 19);  // Sélection des canaux AN16 et AN19
 
     IFS0bits.AD1IF = 0;         // Effacer le flag d'interruption
     IEC0bits.AD1IE = 1;         // Activer interuption

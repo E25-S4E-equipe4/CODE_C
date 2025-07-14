@@ -1,7 +1,7 @@
 #include "interface.h"
 #include "lcd.h"
 #include "config.h"
-
+#include "../projet_mplab.X/Stepper.h"
 #include <xc.h>
 #include <string.h>
 typedef enum {

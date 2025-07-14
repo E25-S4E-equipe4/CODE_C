@@ -190,6 +190,8 @@
         <itemPath>../src/main.h</itemPath>
         <itemPath>../src/sensorIR.h</itemPath>
         <itemPath>../src/interface.h</itemPath>
+        <itemPath>Config_Tests_DRV_stepper.h</itemPath>
+        <itemPath>Stepper.h</itemPath>
       </logicalFolder>
       <itemPath>../src/config_bits.h</itemPath>
     </logicalFolder>
@@ -360,6 +362,9 @@
         <itemPath>../src/main.c</itemPath>
         <itemPath>../src/sensorIR.c</itemPath>
         <itemPath>../src/interface.c</itemPath>
+        <itemPath>Config_Tests_DRV_stepper.c</itemPath>
+        <itemPath>Stepper.c</itemPath>
+        <itemPath>main_stepper.c</itemPath>
       </logicalFolder>
     </logicalFolder>
   </logicalFolder>
@@ -368,6 +373,7 @@
     <Elem>..\src\default</Elem>
     <Elem>..\src\system_config\default</Elem>
     <Elem>../src/system_config/default/framework</Elem>
+    <Elem>.</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -379,7 +385,7 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>PK3OBPlatformTool</platformTool>
         <languageToolchain>XC32</languageToolchain>
-        <languageToolchainVersion>4.60</languageToolchainVersion>
+        <languageToolchainVersion>3.01</languageToolchainVersion>
         <platform>3</platform>
       </toolsSet>
       <packs>
@@ -1149,42 +1155,6 @@
                   value=""/>
         <property key="warningmessagebreakoptions.warningmessages" value="holdstate"/>
       </Simulator>
-      <Tool>
-        <property key="AutoSelectMemRanges" value="auto"/>
-        <property key="SecureSegment.SegmentProgramming" value="FullChipProgramming"/>
-        <property key="ToolFirmwareFilePath"
-                  value="Press to browse for a specific firmware version"/>
-        <property key="ToolFirmwareOption.UseLatestFirmware" value="true"/>
-        <property key="debugoptions.debug-startup" value="Use system settings"/>
-        <property key="debugoptions.reset-behaviour" value="Use system settings"/>
-        <property key="event.recorder.debugger.behavior" value="Running"/>
-        <property key="event.recorder.enabled" value="false"/>
-        <property key="event.recorder.scvd.files" value=""/>
-        <property key="lastid" value=""/>
-        <property key="memories.bootflash" value="true"/>
-        <property key="memories.configurationmemory" value="true"/>
-        <property key="memories.dataflash" value="true"/>
-        <property key="memories.eeprom" value="true"/>
-        <property key="memories.id" value="true"/>
-        <property key="memories.programmemory" value="true"/>
-        <property key="memories.programmemory.ranges"
-                  value="${memories.programmemory.ranges}"/>
-        <property key="memories.userotp" value="true"/>
-        <property key="poweroptions.powerenable" value="false"/>
-        <property key="programoptions.eraseb4program" value="true"/>
-        <property key="programoptions.preservedataflash" value="false"/>
-        <property key="programoptions.preservedataflash.ranges"
-                  value="${programoptions.preservedataflash.ranges}"/>
-        <property key="programoptions.preserveeeprom" value="false"/>
-        <property key="programoptions.preserveeeprom.ranges"
-                  value="${programoptions.preserveeeprom.ranges}"/>
-        <property key="programoptions.preserveprogram.ranges"
-                  value="0x1d000000-0x1d003fff"/>
-        <property key="programoptions.preserveprogramrange" value="false"/>
-        <property key="programoptions.usehighvoltageonmclr" value="false"/>
-        <property key="programoptions.uselvpprogramming" value="false"/>
-        <property key="voltagevalue" value="3.25"/>
-      </Tool>
     </conf>
   </confs>
 </configurationDescriptor>

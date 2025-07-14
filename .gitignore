@@ -1,2 +1,7 @@
-projet_mplab.X/
-src/system_config/default/
+projet_mplab.X/.generated_files/
+projet_mplab.X/build/
+projet_mplab.X/debug/
+projet_mplab.X/dist/
+projet_mplab.X/nbproject/
+projet_mplab.X/.DS_Store
+src/system_config/
