@@ -34,7 +34,7 @@ void config_IR();
 
 /**
  * Fonction appelée afin d'avoir les distances des capteurs de distances
- * @return Un tableau de 2 éléments (2 capteurs) de leur distance en mm
+ * @return Un tableau de 2 éléments (2 capteurs) de leur distance en mm entier
  *      Le premier élément est AN14 et le deuxième AN19
  */
 uint16_t * IR_get_dst();
