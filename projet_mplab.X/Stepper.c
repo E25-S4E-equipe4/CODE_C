@@ -1,6 +1,7 @@
 
 //Include C Header
 #include "Stepper.h"
+#include "interface.h"
 
 
 #define fct_mm_to_step 50  //Facteur de conversion de distance mm a nombre de pas en fonction du gear ratio unite : pas/mm
@@ -25,7 +26,6 @@ bool direction_globale = 0;
  * Return:
  * Aucun return.
 **/
-
 void __ISR(_TIMER_2_VECTOR, IPL2AUTO) T2_ISR(){
     
     if(!direction_globale){
@@ -119,6 +119,7 @@ void config_stepper(){
  * Aucun return.
 **/
 void stepper_home(){
+    config_stepper();       //Reconfiguration des timer et des interrupts du stepper
     
     LATCbits.LATC4 = 1; //Sleep mode off
     
@@ -165,6 +166,7 @@ void stepper_home(){
  * Aucun return.
 **/
 void stepper_move(bool direction, uint8_t dst){
+    config_stepper();       //Reconfiguration des timer et des interrupts du stepper
     
     LATCbits.LATC4 = 1; //Sleep mode off
     
@@ -188,7 +190,9 @@ void stepper_move(bool direction, uint8_t dst){
         //Demarrage de OC3
         OC3CONbits.ON = 1;
         
-        while(position_pas < pos_finale && position_pas < max_hauteur_pas){}
+        while(position_pas < pos_finale && position_pas < max_hauteur_pas){
+            interface_LCD_height(stepper_get_height());
+        }
         
         //Arret de OC3
         OC3CONbits.ON = 0;

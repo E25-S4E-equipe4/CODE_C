@@ -54,6 +54,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // *****************************************************************************
 
 #include "main.h"
+//#include "config_bits.h"
 //#include "system_config.h"
 //#include "system/common/sys_module.h"   // SYS function prototypes
 //#include "driver/spi/src/dynamic/drv_spi_internal.h"
@@ -295,6 +296,9 @@ int main(void) {
     //SSD_WriteDigitsGrouped(0xFA9B,0x1);
     config_interface();
     config_stepper();
+    
+    macro_enable_interrupts();
+    
     stepper_home();
     
     while (1) {
