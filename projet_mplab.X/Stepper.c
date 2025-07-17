@@ -202,17 +202,22 @@ void stepper_move(bool direction, uint8_t dst){
         
     }
     
-    else if(direction_globale){
+    else if(direction_globale){     //Descendre
         
         pos_finale = pos_initiale - nb_step;
-        
+        //Si la position finale est superieur a la position initiale, il y a eu un debordement donc le position devrait etre 0
+        if (pos_finale > pos_initiale) {
+            pos_finale = 0;
+        }
         //Demarrage du Timer 2
         T2CONbits.ON = 1;
         
         //Demarrage de OC3
         OC3CONbits.ON = 1;
         
-        while(position_pas > pos_finale && position_pas > min_hauteur_pas){}
+        while(position_pas > pos_finale && position_pas > min_hauteur_pas){
+        interface_LCD_height(stepper_get_height());
+        }
         
         //Arret de OC3
         OC3CONbits.ON = 0;

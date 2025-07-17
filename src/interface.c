@@ -17,8 +17,7 @@ Etat current_state = MODE_AUTO;
 int hauteur = 0;
 int hauteur_manuel = 0;
 bool direction;
-int distance;
-uint16_t distance_IR[2];
+uint16_t * distances_IR;
 uint16_t distance_IR_1;
 uint16_t distance_IR_2;
 static int current_distance = 000;
@@ -49,26 +48,35 @@ void config_interface(void) {
     tris_LED8_G = 0;
     tris_LED8_B = 0; ansel_LED8_B = 0;
 
+    // --- Switch
+    tris_SWT_SWT7 = 1;  //Switch 7 (B9) set as input
+    ansel_SWT_SWT7 = 0; //No analog read
+    tris_SWT_SWT6 = 1;  //Switch 6 (B10) set as input
+    ansel_SWT_SWT6 = 0; //No analog read
 }
 
 // Change le mode actuel et met à jour l'affichage LCD et les couleurs des DELs RGB.
 void interface_set_mode(void) {
     switch (current_state) {
+//        #################################################################################
+//        ##                                                                             ##
+//        ##                             MODE AUTOMATIC                                  ##
+//        ##                                                                             ##
+//        #################################################################################
         case MODE_AUTO:  
-            //ajuster la hauteur avec le detecteur de proximité
             LATD = 0;
             lat_LED8_G = 1;
             LATACLR = 0b0000000000011110;
-            if (prt_BTN_BTNR == 1) { delay_ms(DEBOUNCE_DELAY_MS); current_state = MODE_MANUAL;}
             LCD_WriteStringAtPos("Auto  ", 1, 6);
             current_distance = stepper_get_height();
             interface_LCD_height(current_distance);
+            if (prt_BTN_BTNR == 1) { delay_ms(DEBOUNCE_DELAY_MS); current_state = MODE_MANUAL;}
             //Appelle de la detection de voix de la FFT
 //            start_voix();
 //            if (get_FFT()) {
-//                distance_IR = IR_get_dst();
-//                distance_IR_1 = distance_IR[0]; //AN16
-//                distance_IR_2 = distance_IR[1]; //AN19
+//                distances_IR = IR_get_dst();
+//                distance_IR_1 = distances_IR[0]; //AN16 distance pour monter
+//                distance_IR_2 = distances_IR[1]; //AN19 distance pour descendre
 //                if (distance_IR_1 > 300) {
 //                    stepper_move(0, distance_IR_1);
 //                }
@@ -80,62 +88,68 @@ void interface_set_mode(void) {
             //Simulation de la detection de la voix avec le bouton du centre en mode auto
             if (prt_BTN_BTNC) {
                 delay_ms(DEBOUNCE_DELAY_MS); 
-                //distance_IR = IR_get_dst();
-                //distance_IR_1 = distance_IR[0]; //AN16
-                //distance_IR_2 = distance_IR[1]; //AN19
-//                if (distance_IR_1 > 300) {
-//                    stepper_move(0, distance_IR_1);
-//                }
-//                if (distance_IR_2 > 300) {
-//                    stepper_move(1, distance_IR_2);
-//                }
-                //Overwrite de la lecture des capteurs de distances
-                //Enlever lorsque les capteurs sont fonctionnels
-                interface_hand_confirm(1);
-                stepper_move(0, 50);
+                distances_IR = IR_get_dst();
+                distance_IR_1 = distances_IR[0]; //AN16 pointe vers le haut
+                distance_IR_2 = distances_IR[1]; //AN19 pointe vers le bas
+                if (distance_IR_1 > 300) {
+                    interface_hand_confirm(1);
+                    stepper_move(0, distance_IR_1);
+                }
+                else if (distance_IR_2 > 300) {     //ajouter detection du sol en fonction de la position actuelle
+                    interface_hand_confirm(1);
+                    stepper_move(1, distance_IR_2);
+                }
+                //Overwrite de la lecture des capteurs de distances si la switch 6 est active
+                if (prt_SWT_SWT6) {
+                    interface_hand_confirm(1);
+                    stepper_move(0, 50);
+                }
             }
             interface_hand_confirm(0);
-            
             break;
+            
+//        #################################################################################
+//        ##                                                                             ##
+//        ##                             MODE MANUEL                                     ##
+//        ##                                                                             ##
+//        #################################################################################
         case MODE_MANUAL:  
             LATD = 0;
             lat_LED8_B = 1;
             LATACLR = 0b0000000000011110;
-            if (prt_BTN_BTNR == 1){ delay_ms(DEBOUNCE_DELAY_MS); current_state = MODE_LOCK;}
-            //if (hauteur >= 1) hauteur -= 1;
-            //interface_LCD_height(hauteur);
             LCD_WriteStringAtPos("Manual", 1, 6);
             current_distance = stepper_get_height();
+            if (prt_BTN_BTNR == 1){ delay_ms(DEBOUNCE_DELAY_MS); current_state = MODE_LOCK;}
             if (prt_BTN_BTNU == 1) { 
-                //delay_ms(DEBOUNCE_DELAY_MS); 
+                delay_ms(DEBOUNCE_DELAY_MS); 
                 LATAbits.LATA1 = 1; 
-                //hauteur = hauteur + 5;
-                //config_stepper();
                 stepper_move(0, 2);
-                //delay_ms(DEBOUNCE_DELAY_MS);
             }
             if (prt_BTN_BTNC == 1) { 
                 delay_ms(DEBOUNCE_DELAY_MS); 
                 LATAbits.LATA2 = 1; 
-                //envoyer la hauteur
+                //Envoie le moteur chercher sa valeur initiale selon la limit switch
                 stepper_home();
             }
             if (prt_BTN_BTND == 1) { 
-                //delay_ms(DEBOUNCE_DELAY_MS); 
+                delay_ms(DEBOUNCE_DELAY_MS); 
                 LATAbits.LATA3 = 1;
-                //hauteur= hauteur - 5;
                 stepper_move(1, 2);
             }
-//            hauteur_manuel = current_distance + hauteur;
-//            interface_LCD_height(hauteur_manuel);
             interface_LCD_height(current_distance);
             break;
+            
+//        #################################################################################
+//        ##                                                                             ##
+//        ##                             MODE LOCK                                       ##
+//        ##                                                                             ##
+//        #################################################################################
         case MODE_LOCK:  
             LATD = 0;
             lat_LED8_R = 1;
             LATA = 0;
-            if (prt_BTN_BTNR == 1){ delay_ms(DEBOUNCE_DELAY_MS); current_state = MODE_AUTO;}
             LCD_WriteStringAtPos("Lock  ", 1, 6);
+            if (prt_BTN_BTNR == 1){ delay_ms(DEBOUNCE_DELAY_MS); current_state = MODE_AUTO;}
             break;
         
     }

@@ -1,4 +1,4 @@
-
+#include "../src/config.h"
 #include "Config_Tests_DRV_stepper.h"
 
 int etat = 0; //etat MEF
@@ -71,7 +71,10 @@ void MEF_test_DRV_stepper(){
     int BTNL = PORTBbits.RB0; // read BTNL
     int BTNC = PORTFbits.RF0; // read BTNC
     int BTND = PORTAbits.RA15; // read BTND
+    int SW6  = PORTBbits.RB10;// read SW6
     int i;
+    
+    interface_LCD_height(stepper_get_height());
     
     switch(etat){
         
@@ -106,6 +109,8 @@ void MEF_test_DRV_stepper(){
             uint8_t message = stepper_get_height();
             UART4_PutUint(message);
             
+            stepper_move(0, 100);       //Mouve vers le haut de 100mm lorsque BTN C est pese
+            
             for(i=0;i<1000000;i++){}    //delai
             
             etat = 0;
@@ -117,7 +122,12 @@ void MEF_test_DRV_stepper(){
             LATACLR = 0b11111111;
             LATAbits.LATA2 = 1;
             
-            stepper_move(0, 10);
+            if (!SW6) {
+                stepper_move(0, 5);
+            }
+            if (SW6) {
+                stepper_move(0, 250);
+            }
             
             etat = 0;
             
@@ -130,7 +140,12 @@ void MEF_test_DRV_stepper(){
             LATACLR = 0b11111111;
             LATAbits.LATA3 = 1;
             
-            stepper_move(1, 10);
+            if (!SW6) {
+                stepper_move(1, 5);
+            }
+            if (SW6) {
+                stepper_move(1, 250);
+            }
   
             etat = 0;
             
