@@ -54,15 +54,20 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // *****************************************************************************
 
 #include "main.h"
-#include "system_config.h"
-#include "system/common/sys_module.h"   // SYS function prototypes
-#include "driver/spi/src/dynamic/drv_spi_internal.h"
-#include "UDP_app.h"
+//#include "config_bits.h"
+//#include "system_config.h"
+//#include "system/common/sys_module.h"   // SYS function prototypes
+//#include "driver/spi/src/dynamic/drv_spi_internal.h"
+//#include "UDP_app.h"
 #include "led.h"
-#include "ssd.h"
-#include "accel.h"
+//#include "ssd.h"
+//#include "accel.h"
 #include "lcd.h"
-#include "app_commands.h"
+//#include "app_commands.h"
+#include "interface.h"
+#include "../projet_mplab.X/Stepper.h"
+#include "../projet_mplab.X/Config_Tests_DRV_stepper.h"
+
 
 
 //Moyenne est faite direct sur la MX3 (GestionMoyenne dans accel.c)
@@ -98,202 +103,214 @@ MAIN_DATA mainData;
 // Section: Application Callback Functions
 // *****************************************************************************
 // *****************************************************************************
-
-/* TODO:  Add any necessary callback functions.
- */
-
+//
+///* TODO:  Add any necessary callback functions.
+// */
+//
 // *****************************************************************************
 // *****************************************************************************
 // Section: Application Local Functions
 // *****************************************************************************
 // *****************************************************************************
-
-int Intense[3];
-int Last_Intense[3];
-
-/* Application's LED Task Function 
- Fonction qui fait clignoter une LED la LED1 à chaque 20000 execution du code
- */
-static unsigned long int counter=0;
-static void LedTask(void) 
-{
-    if(counter++ == 20000){
-        LED_ToggleValue(1);
-        counter = 0;
-    }  
-}
-
-void Interupt_ACL_Init(void)
-{
-    IFS0bits.INT4IF = 0;
-    IEC0bits.INT4IE = 1;
-    IPC4bits.INT4IP = 1;
-    IPC4bits.INT4IS = 0;
-    INTCONbits.INT4EP = 0;
-    INT4Rbits.INT4R = 12;    //assigner le Interupt au boutton C en mettant 4, quand ca va être ok mettre 12
-}
-
-static bool sw0_old; 
-void ManageSwitches()
-{
-    bool sw0_new = SWITCH0StateGet();
-    if((sw0_new != sw0_old) && sw0_new)
-    {
-        //strcpy(UDP_Send_Buffer, "Bonjour S4\n\r");
-        //UDP_bytes_to_send = strlen(UDP_Send_Buffer);
-        UDP_Send_Packet = true;       
-    }
-
-    sw0_old = sw0_new; 
-}
-
-void RGB_Task()
-{
-    //if(timer_1m) {               // Interruption à chaque 1 ms
-        //timer_1m = 0;            // Reset the compteur to capture the next event
-        //Toute pour la Moyenne fait directement dans la MX3 avec la fonction GestionMoyenne dans accel.c
-        Intense[0] = (MoyenneX*255)/2096;
-        Intense[1] = (MoyenneY*255)/2096;
-        Intense[2] = (MoyenneZ*255)/2096;
-
-        if(Intense[0] <= 0)
-        {
-            Intense[0] = Last_Intense[0];
-        }
-        else
-        {
-          Last_Intense[0] = Intense[0];  
-        }
-
-        if(Intense[1] <= 0)
-        {
-            Intense[1] = Last_Intense[1];
-        }
-        else
-        {
-          Last_Intense[0] = Intense[0];  
-        }
-
-        if(Intense[2] <= 0)
-        {
-            Intense[2] = Last_Intense[2];
-        }
-        else
-        {
-          Last_Intense[0] = Intense[0];  
-        }
-
-        RGBLED_SetValue(Intense[0], Intense[1], Intense[2]); 
-    //}
-}
-
-
-// *****************************************************************************
-// *****************************************************************************
-// Section: Application Initialization and State Machine Functions
-// *****************************************************************************
-// *****************************************************************************
-
-/*******************************************************************************
-  Function:
-    void MAIN_Initialize ( void )
-
-  Remarks:
-    See prototype in main.h.
- */
-
-void MAIN_Initialize ( void )
-{
-     
-    /* Place the App state machine in its initial state. */
-    mainData.state = MAIN_STATE_INIT;
-
-    mainData.handleUSART0 = DRV_HANDLE_INVALID;
-
-    UDP_Initialize(); // Initialisation de du serveur et client UDP
-    LCD_Init(); // Initialisation de l'écran LCD
-    ACL_Init(); // Initialisation de l'accéléromètre
-    SSD_Init(); // Initialisation du Timer4 et de l'accéléromètre
-    Interupt_ACL_Init(); //Initialisation de l'interuption de l'accéléromètre
-    RGBLED_Init();
-    Init_GestionDonnees();
-    //initialize_timer_interrupt();
-    //macro_enable_interrupts();
-    
-}
-
-
-/******************************************************************************
-  Function:
-    void MAIN_Tasks ( void )
- * Fonction qui execute les tâches de l'application. Cette fonction est une
- * machien d'état :
- * 1. MAIN_STATE_INIT; Initialise les périphérique de communication USART et 
- *    passe à l'état 2 quand l'initialisation est terminée.
- * 2. MAIN_STATE_SERVICE_TASKS; Execute les tâches de l'application. Ne change 
- * jamais d'état.
-
-  Remarks:
-    See prototype in main.h.
- */
-
-void MAIN_Tasks ( void )
-{
-
-    /* Check the application's current state. */
-    switch ( mainData.state )
-    {
-            /* Application's initial state. */
-        case MAIN_STATE_INIT:
-        {
-            bool appInitialized = true;
-            SYS_CONSOLE_MESSAGE("Init\r\n");
-
-            if (mainData.handleUSART0 == DRV_HANDLE_INVALID)
-            {
-                mainData.handleUSART0 = DRV_USART_Open(MAIN_DRV_USART, DRV_IO_INTENT_READWRITE|DRV_IO_INTENT_NONBLOCKING);
-                appInitialized &= (DRV_HANDLE_INVALID != mainData.handleUSART0);
-            }
-
-
-            if (appInitialized)
-            {
-                mainData.state = MAIN_STATE_SERVICE_TASKS;
-            }
-            break;
-        }
-
-        case MAIN_STATE_SERVICE_TASKS:
-        {
-            LedTask(); //toggle LED1 à tout les 500000 cycles
-            accel_tasks(); // 
-            RGB_Task();
-            UDP_Tasks();
-            ManageSwitches();
-        	JB1Toggle();
-            LED0Toggle();
-            break;
-        }
-
-            /* The default state should never be executed. */
-        default:
-        {
-            /* TODO: Handle error in application's state machine. */
-            break;
-        }
-    }
-}
+//
+//int Intense[3];
+//int Last_Intense[3];
+//
+///* Application's LED Task Function 
+// Fonction qui fait clignoter une LED la LED1 à chaque 20000 execution du code
+// */
+//static unsigned long int counter=0;
+//static void LedTask(void) 
+//{
+//    if(counter++ == 20000){
+//        LED_ToggleValue(1);
+//        counter = 0;
+//    }  
+//}
+//
+//void Interupt_ACL_Init(void)
+//{
+//    IFS0bits.INT4IF = 0;
+//    IEC0bits.INT4IE = 1;
+//    IPC4bits.INT4IP = 1;
+//    IPC4bits.INT4IS = 0;
+//    INTCONbits.INT4EP = 0;
+//    INT4Rbits.INT4R = 12;    //assigner le Interupt au boutton C en mettant 4, quand ca va être ok mettre 12
+//}
+//
+//static bool sw0_old; 
+//void ManageSwitches()
+//{
+//    bool sw0_new = SWITCH0StateGet();
+//    if((sw0_new != sw0_old) && sw0_new)
+//    {
+//        //strcpy(UDP_Send_Buffer, "Bonjour S4\n\r");
+//        //UDP_bytes_to_send = strlen(UDP_Send_Buffer);
+//        UDP_Send_Packet = true;       
+//    }
+//
+//    sw0_old = sw0_new; 
+//}
+//
+//void RGB_Task()
+//{
+//    //if(timer_1m) {               // Interruption à chaque 1 ms
+//        //timer_1m = 0;            // Reset the compteur to capture the next event
+//        //Toute pour la Moyenne fait directement dans la MX3 avec la fonction GestionMoyenne dans accel.c
+//        Intense[0] = (MoyenneX*255)/2096;
+//        Intense[1] = (MoyenneY*255)/2096;
+//        Intense[2] = (MoyenneZ*255)/2096;
+//
+//        if(Intense[0] <= 0)
+//        {
+//            Intense[0] = Last_Intense[0];
+//        }
+//        else
+//        {
+//          Last_Intense[0] = Intense[0];  
+//        }
+//
+//        if(Intense[1] <= 0)
+//        {
+//            Intense[1] = Last_Intense[1];
+//        }
+//        else
+//        {
+//          Last_Intense[0] = Intense[0];  
+//        }
+//
+//        if(Intense[2] <= 0)
+//        {
+//            Intense[2] = Last_Intense[2];
+//        }
+//        else
+//        {
+//          Last_Intense[0] = Intense[0];  
+//        }
+//
+//        RGBLED_SetValue(Intense[0], Intense[1], Intense[2]); 
+//    //}
+//}
+//
+//
+//// *****************************************************************************
+//// *****************************************************************************
+//// Section: Application Initialization and State Machine Functions
+//// *****************************************************************************
+//// *****************************************************************************
+//
+///*******************************************************************************
+//  Function:
+//    void MAIN_Initialize ( void )
+//
+//  Remarks:
+//    See prototype in main.h.
+// */
+//
+//void MAIN_Initialize ( void )
+//{
+//     
+//    /* Place the App state machine in its initial state. */
+//    mainData.state = MAIN_STATE_INIT;
+//
+//    mainData.handleUSART0 = DRV_HANDLE_INVALID;
+//
+//    UDP_Initialize(); // Initialisation de du serveur et client UDP
+//    LCD_Init(); // Initialisation de l'écran LCD
+//    ACL_Init(); // Initialisation de l'accéléromètre
+//    SSD_Init(); // Initialisation du Timer4 et de l'accéléromètre
+//    Interupt_ACL_Init(); //Initialisation de l'interuption de l'accéléromètre
+//    RGBLED_Init();
+//    Init_GestionDonnees();
+//    //initialize_timer_interrupt();
+//    //macro_enable_interrupts();
+//    
+//}
+//
+//
+///******************************************************************************
+//  Function:
+//    void MAIN_Tasks ( void )
+// * Fonction qui execute les tâches de l'application. Cette fonction est une
+// * machien d'état :
+// * 1. MAIN_STATE_INIT; Initialise les périphérique de communication USART et 
+// *    passe à l'état 2 quand l'initialisation est terminée.
+// * 2. MAIN_STATE_SERVICE_TASKS; Execute les tâches de l'application. Ne change 
+// * jamais d'état.
+//
+//  Remarks:
+//    See prototype in main.h.
+// */
+//
+//void MAIN_Tasks ( void )
+//{
+//
+//    /* Check the application's current state. */
+//    switch ( mainData.state )
+//    {
+//            /* Application's initial state. */
+//        case MAIN_STATE_INIT:
+//        {
+//            bool appInitialized = true;
+//            SYS_CONSOLE_MESSAGE("Init\r\n");
+//
+//            if (mainData.handleUSART0 == DRV_HANDLE_INVALID)
+//            {
+//                mainData.handleUSART0 = DRV_USART_Open(MAIN_DRV_USART, DRV_IO_INTENT_READWRITE|DRV_IO_INTENT_NONBLOCKING);
+//                appInitialized &= (DRV_HANDLE_INVALID != mainData.handleUSART0);
+//            }
+//
+//
+//            if (appInitialized)
+//            {
+//                mainData.state = MAIN_STATE_SERVICE_TASKS;
+//            }
+//            break;
+//        }
+//
+//        case MAIN_STATE_SERVICE_TASKS:
+//        {
+//            LedTask(); //toggle LED1 à tout les 500000 cycles
+//            accel_tasks(); // 
+//            RGB_Task();
+//            UDP_Tasks();
+//            ManageSwitches();
+//        	JB1Toggle();
+//            LED0Toggle();
+//            break;
+//        }
+//
+//            /* The default state should never be executed. */
+//        default:
+//        {
+//            /* TODO: Handle error in application's state machine. */
+//            break;
+//        }
+//    }
+//}
 
 int main(void) {
     
-    SYS_Initialize(NULL);
-    MAIN_Initialize();
-    SYS_INT_Enable();
-    SSD_WriteDigitsGrouped(0xFA9B,0x1);
+    //SYS_Initialize(NULL);
+    //MAIN_Initialize();
+    //SYS_INT_Enable();
+    //SSD_WriteDigitsGrouped(0xFA9B,0x1);
+    config_interface();
+    config_stepper();
+    
+    macro_enable_interrupts();
+    
+    stepper_home();
     
     while (1) {
-        SYS_Tasks();
-        MAIN_Tasks();
+        //SYS_Tasks();
+        //MAIN_Tasks();
+        if (!prt_SWT_SWT7) {
+            interface_set_mode();
+        }
+        if (prt_SWT_SWT7) {
+            MEF_test_DRV_stepper();
+        }
     };
 
     return 0;

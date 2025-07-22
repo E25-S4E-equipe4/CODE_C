@@ -189,7 +189,11 @@
         <itemPath>../src/config.h</itemPath>
         <itemPath>../src/main.h</itemPath>
         <itemPath>../src/sensorIR.h</itemPath>
+        <itemPath>../src/interface.h</itemPath>
+        <itemPath>Config_Tests_DRV_stepper.h</itemPath>
+        <itemPath>Stepper.h</itemPath>
       </logicalFolder>
+      <itemPath>../src/config_bits.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -357,6 +361,10 @@
         <itemPath>../src/UDP_app.c</itemPath>
         <itemPath>../src/main.c</itemPath>
         <itemPath>../src/sensorIR.c</itemPath>
+        <itemPath>../src/interface.c</itemPath>
+        <itemPath>Config_Tests_DRV_stepper.c</itemPath>
+        <itemPath>Stepper.c</itemPath>
+        <itemPath>main_stepper.c</itemPath>
       </logicalFolder>
     </logicalFolder>
   </logicalFolder>
@@ -365,6 +373,7 @@
     <Elem>..\src\default</Elem>
     <Elem>..\src\system_config\default</Elem>
     <Elem>../src/system_config/default/framework</Elem>
+    <Elem>.</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -448,7 +457,6 @@
         <property key="preprocessor-macros" value=""/>
         <property key="strict-ansi" value="false"/>
         <property key="support-ansi" value="false"/>
-        <property key="tentative-definitions" value="-fno-common"/>
         <property key="toplevel-reordering" value=""/>
         <property key="unaligned-access" value=""/>
         <property key="use-cci" value="false"/>
@@ -480,7 +488,6 @@
       </C32-AS>
       <C32-CO>
         <property key="coverage-enable" value=""/>
-        <property key="stack-guidance" value="false"/>
       </C32-CO>
       <C32-LD>
         <property key="additional-options-use-response-files" value="false"/>
@@ -561,7 +568,6 @@
         <property key="omit-pack-options" value="1"/>
         <property key="relaxed-math" value="false"/>
         <property key="save-temps" value="false"/>
-        <property key="stack-smashing" value=""/>
         <property key="wpo-lto" value="false"/>
       </C32Global>
       <PICkit3PlatformTool>
@@ -644,12 +650,6 @@
         <property key="ToolFirmwareFilePath"
                   value="Press to browse for a specific firmware version"/>
         <property key="ToolFirmwareOption.UseLatestFirmware" value="true"/>
-        <property key="debugoptions.debug-startup" value="Use system settings"/>
-        <property key="debugoptions.reset-behaviour" value="Use system settings"/>
-        <property key="event.recorder.debugger.behavior" value="Running"/>
-        <property key="event.recorder.enabled" value="false"/>
-        <property key="event.recorder.scvd.files" value=""/>
-        <property key="lastid" value=""/>
         <property key="memories.bootflash" value="true"/>
         <property key="memories.configurationmemory" value="true"/>
         <property key="memories.dataflash" value="true"/>

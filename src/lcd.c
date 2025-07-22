@@ -123,23 +123,23 @@ void LCD_ConfigurePins()
 void delay39us(unsigned t) //
 {
     int16_t fpbthresh = 1872; // = SYS_CLK_BUS_PERIPHERAL_1 * 39e-6;
-    T5CON = 0x8000; /* Enable TMR1, Tpb, 1:1 */
+    T4CON = 0x8000; /* Enable TMR1, Tpb, 1:1 */
     while (t--) { /* t x 39us loop */
-        TMR5 = 0;
-        while (TMR5 < fpbthresh);
+        TMR4 = 0;
+        while (TMR4 < fpbthresh);
     }
-    T5CON = 0;
+    T4CON = 0;
 }
 
 void delay1us(unsigned t)
 {
-    int16_t fpbthresh = 24; // = SYS_CLK_BUS_PERIPHERAL_1 * 1e-6;
-    T5CON = 0x8000; /* Enable TMR1, Tpb, 1:1 */
+    int16_t fpbthresh = 240; // = SYS_CLK_BUS_PERIPHERAL_1 * 1e-6;
+    T4CON = 0x8000; /* Enable TMR1, Tpb, 1:1 */
     while (t--) { /* t x 39us loop */
-        TMR5 = 0;
-        while (TMR5 < fpbthresh);
+        TMR4 = 0;
+        while (TMR4 < fpbthresh);
     }
-    T5CON = 0;
+    T4CON = 0;
 }
 
 
@@ -315,8 +315,8 @@ void LCD_WriteDataByte(unsigned char bData)
 void LCD_InitSequence(unsigned char bDisplaySetOptions)
 {
 
-    IFS0bits.T5IF = 0;                  //    clear interrupt flag
-    IEC0bits.T5IE = 0;                  //    enable interrupt 
+    IFS0bits.T4IF = 0;                  //    clear interrupt flag
+    IEC0bits.T4IE = 0;                  //    enable interrupt 
 
 	//	wait 40 ms
 
@@ -481,7 +481,7 @@ void LCD_WriteStringAtPos(char *szLn, unsigned char idxLine, unsigned char idxPo
 	int len = strlen(szLn);
 	if(len > 16)
 	{
-        //szLn[16] = 0; // trim the string so it contains 32 characters 
+        szLn[16] = 0; // trim the string so it contains 32 characters 
 		len = 16;
 	}
 
@@ -495,7 +495,7 @@ void LCD_WriteStringAtPos(char *szLn, unsigned char idxLine, unsigned char idxPo
 	{
 		LCD_WriteDataByte(szLn[bIdx]);
         delay39us(2);
-        //DelayAprox10Us(10 );
+        //DelayAprox10Us(10);
 		bIdx++;
 	}
 }
@@ -527,8 +527,6 @@ void LCD_SetWriteDdramPosition(unsigned char bAddr)
 {
 	LCD_WriteCommand(cmdLcdSetDdramPos | bAddr);
 }
-
-
 
 
 /* ------------------------------------------------------------ */
@@ -564,6 +562,107 @@ void LCD_WriteBytesAtPosCgram(unsigned char *pBytes, unsigned char len, unsigned
 		idx++;
 	}
 }
+
+
+
+/*****************************************************************************
+ * Fonction S4 APP3e
+ * Auteur Jp Gouin
+ * H2022
+ * 
+ * 
+ *****************************************************************************/
+
+void int2char(int value, char * text, int nbDigit, int erase) {
+    if (value + abs(value) == 0 && value != 0) {
+        text[0] = '-';
+    }
+    else {
+        text[0] = ' ';
+    }
+    value = abs(value);
+    
+    int i = 0;
+    int div = 10;
+    
+    // pour les unit�es
+    text[nbDigit-i-1] = (char) (value % div) + '0'; // extrait le digit
+    value = value / 10;   // divise par 10 et arrondie a la baisse.
+    
+    // pour les autres digits
+    for (i=1; i<nbDigit-1; i++) {
+        if (value == 0 && erase == 1){
+                text[nbDigit-i-1] = ' ';
+        }
+        else {
+            text[nbDigit-i-1] = (char) (value % div) + '0'; // extrait le digit
+        }
+        value = value / 10;   // divise par 10 et arrondie a la baisse.
+    }
+}
+
+/* ------------------------------------------------------------ */
+/***	LCD_WriteIntAtPos
+**
+**  Synopsis:
+**      LCD_WriteIntAtPos(20, 6, 0, 0, 1);
+**
+**	Parameters:
+**      int value	- integer to be written to LCD
+**      int nbDigit	- number of digit (string length) to be written to LCD (including the sign + or -)
+**		int idxLine	- line where the string will be displayed
+**          0 - first line of LCD
+**          1 - second line of LCD
+**		unsigned char idxPos - the starting position of the string within the line. 
+**                                  The value must be between:
+**                                      0 - first position from left
+**                                      39 - last position for DDRAM for one line
+**		int erase	- efface les caratères zéros devant le nombre                                  
+**
+**	Return Value:
+**		
+**	Description:
+**		Displays the specified integer at the specified position on the specified line. 
+**		It sets the corresponding write position and then writes data bytes when the device is ready.
+**      Strings longer than 40 characters are trimmed. 
+**      It is possible that not all the characters will be visualized, as the display only visualizes 16 characters for one line.
+**      
+**          
+*/
+
+void LCD_WriteIntAtPos(int value, int nbDigit, unsigned char idxLine, unsigned char idxPos, int erase) {
+    // valeur  => ce qui sera affiché
+    // nbDigit => nombre de chiffre à afficher
+    // erase   => permet d'effacer les zéros devant le nombre
+    
+    char text[nbDigit];
+    int2char(value, text, nbDigit, erase);
+    
+	if(nbDigit > 16) {
+        text[16] = 0; // trim the string so it contains 32 characters 
+		nbDigit = 16;
+	}
+
+	// Set write position
+	unsigned char bAddrOffset = (idxLine == 0 ? 0: 0x40) + idxPos;
+	LCD_SetWriteDdramPosition(bAddrOffset);
+    delay39us(4);
+
+	unsigned char bIdx = 0;
+	while(bIdx < nbDigit) {
+		LCD_WriteDataByte(text[bIdx]);
+        delay39us(2);
+        //DelayAprox10Us(10);
+		bIdx++;
+	}
+}
+
+void LCD_CLEAR() {
+    char vide[] = "                 ";
+    LCD_WriteStringAtPos(vide, 0, 0);  // effacer LCD ligne du haut
+    LCD_WriteStringAtPos(vide, 1, 0);  // effacer LCD ligne du bas
+}
+
 
 /* *****************************************************************************
  End of File
