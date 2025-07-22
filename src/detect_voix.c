@@ -84,7 +84,6 @@ bool detect_position(int *fft_buffer_1024) {
         if (detect_secon_1 && detect_princ_1) {
             if (memoire.last_detect_index < -DEADZONE || 1) {
                 memoire.last_detect_index = 0;
-                printf("[INFO] MOT 'POSITION' DETECTE\n");
                 return true;
             }
         }
