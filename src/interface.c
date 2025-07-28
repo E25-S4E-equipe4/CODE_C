@@ -88,21 +88,36 @@ void interface_set_mode(void) {
             //Simulation de la detection de la voix avec le bouton du centre en mode auto
             if (prt_BTN_BTNC) {
                 delay_ms(DEBOUNCE_DELAY_MS); 
-                distances_IR = IR_get_dst();
-                distance_IR_1 = distances_IR[0]; //AN16 pointe vers le haut
-                distance_IR_2 = distances_IR[1]; //AN19 pointe vers le bas
-                if (distance_IR_1 > 300) {
-                    interface_hand_confirm(1);
-                    stepper_move(0, distance_IR_1);
-                }
-                else if (distance_IR_2 > 300) {     //ajouter detection du sol en fonction de la position actuelle
-                    interface_hand_confirm(1);
-                    stepper_move(1, distance_IR_2);
-                }
                 //Overwrite de la lecture des capteurs de distances si la switch 6 est active
                 if (prt_SWT_SWT6) {
                     interface_hand_confirm(1);
                     stepper_move(0, 50);
+                }
+                else {
+                    int i=0;
+                    distances_IR = 0;
+                    distance_IR_1 = 0;
+                    distance_IR_2 = 0;
+//                    for (i = 0;i<3;i++) {
+//                        distances_IR = IR_get_dst();
+//                        distance_IR_1 += distances_IR[0]; //AN16 pointe vers le haut
+//                        distance_IR_2 += distances_IR[1]; //AN19 pointe vers le bas
+//                    }
+//                    distance_IR_1 = distance_IR_1 / 3; //AN19 pointe vers le bas
+//                    distance_IR_2 = distance_IR_2 / 3; //AN19 pointe vers le bas
+                    distances_IR = IR_get_dst();
+                    distance_IR_1 = distances_IR[0]; //AN16 pointe vers le haut
+                    distance_IR_2 = distances_IR[1]; //AN19 pointe vers le bas
+                    distance_IR_1 = distance_IR_1 * 1.0601 - 25.588; //AN16 pointe vers le haut
+                    distance_IR_2 = distance_IR_2 * 1.0601 - 25.588; //AN16 pointe vers le haut
+                    if (distance_IR_1 < 300) {
+                        interface_hand_confirm(1);
+                        stepper_move(0, distance_IR_1);
+                    }
+                    else if (distance_IR_2 < 300) {     //ajouter detection du sol en fonction de la position actuelle
+                        interface_hand_confirm(1);
+                        stepper_move(1, distance_IR_2);
+                    }
                 }
             }
             interface_hand_confirm(0);
@@ -121,7 +136,7 @@ void interface_set_mode(void) {
             current_distance = stepper_get_height();
             if (prt_BTN_BTNR == 1){ delay_ms(DEBOUNCE_DELAY_MS); current_state = MODE_LOCK;}
             if (prt_BTN_BTNU == 1) { 
-                delay_ms(DEBOUNCE_DELAY_MS); 
+                //delay_ms(DEBOUNCE_DELAY_MS); 
                 LATAbits.LATA1 = 1; 
                 stepper_move(0, 2);
             }
@@ -132,7 +147,7 @@ void interface_set_mode(void) {
                 stepper_home();
             }
             if (prt_BTN_BTND == 1) { 
-                delay_ms(DEBOUNCE_DELAY_MS); 
+                //delay_ms(DEBOUNCE_DELAY_MS); 
                 LATAbits.LATA3 = 1;
                 stepper_move(1, 2);
             }

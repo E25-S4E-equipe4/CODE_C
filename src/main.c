@@ -305,12 +305,13 @@ int main(void) {
     while (1) {
         //SYS_Tasks();
         //MAIN_Tasks();
-        if (!prt_SWT_SWT7) {
-            interface_set_mode();
-        }
-        if (prt_SWT_SWT7) {
-            MEF_test_DRV_stepper();
-        }
+        interface_set_mode();
+//        if (!prt_SWT_SWT7) {
+//            interface_set_mode();
+//        }
+//        if (prt_SWT_SWT7) {
+//            MEF_test_DRV_stepper();
+//        }
     };
 
     return 0;
