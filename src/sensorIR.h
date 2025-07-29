@@ -33,6 +33,11 @@ extern "C" {
 void config_IR();
 
 /**
+ * Fonction appelé par l'interrupt de l'adc dans le micro
+ */
+void traitementIR();
+
+/**
  * Fonction appelée afin d'avoir les distances des capteurs de distances
  * @return Un tableau de 2 éléments (2 capteurs) de leur distance en mm
  *      Le premier élément est AN16 et le deuxième AN19

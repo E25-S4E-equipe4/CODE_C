@@ -17,6 +17,7 @@
 #include <xc.h>
 #include "sensorIR.h"
 #include "config.h"
+#include "micro.h"
 //#include "config_bits.h"
 
 #define NB_ECH 2500
@@ -75,16 +76,17 @@ void config_IR(void) {
     AD1CON1bits.ON = 1;        // Activer ADC
 }
 
-void __attribute__((vector(_ADC_VECTOR), interrupt(IPL4SOFT))) ADCEnregistrement(void)
-{
+void traitementIR(){
     sensor_distance_1 += ADC1BUF0;
     sensor_distance_2 += ADC1BUF1;
     echantillions++;
     IFS0bits.AD1IF = 0;
 }
 
+
 uint16_t * IR_get_dst(){
     config_IR();
+    setADCmode(1);
     while(echantillions < NB_ECH){
         if (echantillions > NB_ECH) {
             break;
