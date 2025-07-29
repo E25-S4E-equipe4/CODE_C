@@ -55,15 +55,15 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 #include "main.h"
 //#include "config_bits.h"
-//#include "system_config.h"
-//#include "system/common/sys_module.h"   // SYS function prototypes
-//#include "driver/spi/src/dynamic/drv_spi_internal.h"
-//#include "UDP_app.h"
+#include "system_config.h"
+#include "system/common/sys_module.h"   // SYS function prototypes
+#include "driver/spi/src/dynamic/drv_spi_internal.h"
+#include "UDP_app.h"
 #include "led.h"
-//#include "ssd.h"
+#include "ssd.h"
 //#include "accel.h"
 #include "lcd.h"
-//#include "app_commands.h"
+#include "app_commands.h"
 #include "interface.h"
 #include "../projet_mplab.X/Stepper.h"
 #include "../projet_mplab.X/Config_Tests_DRV_stepper.h"
@@ -116,9 +116,9 @@ MAIN_DATA mainData;
 //int Intense[3];
 //int Last_Intense[3];
 //
-///* Application's LED Task Function 
-// Fonction qui fait clignoter une LED la LED1 à chaque 20000 execution du code
-// */
+/* Application's LED Task Function 
+ Fonction qui fait clignoter une LED la LED1 à chaque 20000 execution du code
+ */
 //static unsigned long int counter=0;
 //static void LedTask(void) 
 //{
@@ -191,121 +191,128 @@ MAIN_DATA mainData;
 //        RGBLED_SetValue(Intense[0], Intense[1], Intense[2]); 
 //    //}
 //}
-//
-//
-//// *****************************************************************************
-//// *****************************************************************************
-//// Section: Application Initialization and State Machine Functions
-//// *****************************************************************************
-//// *****************************************************************************
-//
-///*******************************************************************************
-//  Function:
-//    void MAIN_Initialize ( void )
-//
-//  Remarks:
-//    See prototype in main.h.
-// */
-//
-//void MAIN_Initialize ( void )
-//{
-//     
-//    /* Place the App state machine in its initial state. */
-//    mainData.state = MAIN_STATE_INIT;
-//
-//    mainData.handleUSART0 = DRV_HANDLE_INVALID;
-//
-//    UDP_Initialize(); // Initialisation de du serveur et client UDP
-//    LCD_Init(); // Initialisation de l'écran LCD
-//    ACL_Init(); // Initialisation de l'accéléromètre
-//    SSD_Init(); // Initialisation du Timer4 et de l'accéléromètre
-//    Interupt_ACL_Init(); //Initialisation de l'interuption de l'accéléromètre
-//    RGBLED_Init();
-//    Init_GestionDonnees();
-//    //initialize_timer_interrupt();
-//    //macro_enable_interrupts();
-//    
-//}
-//
-//
-///******************************************************************************
-//  Function:
-//    void MAIN_Tasks ( void )
-// * Fonction qui execute les tâches de l'application. Cette fonction est une
-// * machien d'état :
-// * 1. MAIN_STATE_INIT; Initialise les périphérique de communication USART et 
-// *    passe à l'état 2 quand l'initialisation est terminée.
-// * 2. MAIN_STATE_SERVICE_TASKS; Execute les tâches de l'application. Ne change 
-// * jamais d'état.
-//
-//  Remarks:
-//    See prototype in main.h.
-// */
-//
-//void MAIN_Tasks ( void )
-//{
-//
-//    /* Check the application's current state. */
-//    switch ( mainData.state )
-//    {
-//            /* Application's initial state. */
-//        case MAIN_STATE_INIT:
-//        {
-//            bool appInitialized = true;
-//            SYS_CONSOLE_MESSAGE("Init\r\n");
-//
-//            if (mainData.handleUSART0 == DRV_HANDLE_INVALID)
-//            {
-//                mainData.handleUSART0 = DRV_USART_Open(MAIN_DRV_USART, DRV_IO_INTENT_READWRITE|DRV_IO_INTENT_NONBLOCKING);
-//                appInitialized &= (DRV_HANDLE_INVALID != mainData.handleUSART0);
-//            }
-//
-//
-//            if (appInitialized)
-//            {
-//                mainData.state = MAIN_STATE_SERVICE_TASKS;
-//            }
-//            break;
-//        }
-//
-//        case MAIN_STATE_SERVICE_TASKS:
-//        {
-//            LedTask(); //toggle LED1 à tout les 500000 cycles
-//            accel_tasks(); // 
-//            RGB_Task();
-//            UDP_Tasks();
-//            ManageSwitches();
-//        	JB1Toggle();
-//            LED0Toggle();
-//            break;
-//        }
-//
-//            /* The default state should never be executed. */
-//        default:
-//        {
-//            /* TODO: Handle error in application's state machine. */
-//            break;
-//        }
-//    }
-//}
 
-int main(void) {
-    
-    //SYS_Initialize(NULL);
-    //MAIN_Initialize();
-    //SYS_INT_Enable();
-    //SSD_WriteDigitsGrouped(0xFA9B,0x1);
+
+// *****************************************************************************
+// *****************************************************************************
+// Section: Application Initialization and State Machine Functions
+// *****************************************************************************
+// *****************************************************************************
+
+/*******************************************************************************
+  Function:
+    void MAIN_Initialize ( void )
+
+  Remarks:
+    See prototype in main.h.
+ */
+
+void MAIN_Initialize ( void )
+{
+     
+    /* Place the App state machine in its initial state. */
+    mainData.state = MAIN_STATE_INIT;
+
+    mainData.handleUSART0 = DRV_HANDLE_INVALID;
+
+    UDP_Initialize(); // Initialisation de du serveur et client UDP
+    LCD_Init(); // Initialisation de l'écran LCD
+    //ACL_Init(); // Initialisation de l'accéléromètre
+    //SSD_Init(); // Initialisation du Timer4 et de l'accéléromètre
+    //Interupt_ACL_Init(); //Initialisation de l'interuption de l'accéléromètre
+    //RGBLED_Init();
+    //Init_GestionDonnees();
+    //initialize_timer_interrupt();
+    //macro_enable_interrupts();
     config_interface();
     config_stepper();
     
     macro_enable_interrupts();
     
     stepper_home();
+}
+
+
+/******************************************************************************
+  Function:
+    void MAIN_Tasks ( void )
+ * Fonction qui execute les tâches de l'application. Cette fonction est une
+ * machien d'état :
+ * 1. MAIN_STATE_INIT; Initialise les périphérique de communication USART et 
+ *    passe à l'état 2 quand l'initialisation est terminée.
+ * 2. MAIN_STATE_SERVICE_TASKS; Execute les tâches de l'application. Ne change 
+ * jamais d'état.
+
+  Remarks:
+    See prototype in main.h.
+ */
+
+void MAIN_Tasks ( void )
+{
+
+    /* Check the application's current state. */
+    switch ( mainData.state )
+    {
+            /* Application's initial state. */
+        case MAIN_STATE_INIT:
+        {
+            bool appInitialized = true;
+            SYS_CONSOLE_MESSAGE("Init\r\n");
+
+            if (mainData.handleUSART0 == DRV_HANDLE_INVALID)
+            {
+                mainData.handleUSART0 = DRV_USART_Open(MAIN_DRV_USART, DRV_IO_INTENT_READWRITE|DRV_IO_INTENT_NONBLOCKING);
+                appInitialized &= (DRV_HANDLE_INVALID != mainData.handleUSART0);
+            }
+
+
+            if (appInitialized)
+            {
+                mainData.state = MAIN_STATE_SERVICE_TASKS;
+            }
+            break;
+        }
+
+        case MAIN_STATE_SERVICE_TASKS:
+        {
+            //LedTask(); //toggle LED1 à tout les 500000 cycles
+            //accel_tasks(); // 
+            //RGB_Task();
+            UDP_Tasks();
+            //ManageSwitches();
+        	//JB1Toggle();
+            //LED0Toggle();
+            interface_set_mode();
+            break;
+        }
+
+            /* The default state should never be executed. */
+        default:
+        {
+            /* TODO: Handle error in application's state machine. */
+            break;
+        }
+    }
+}
+
+int main(void) {
+    
+    SYS_Initialize(NULL);
+    MAIN_Initialize();
+    //SYS_INT_Enable();
+    //SSD_WriteDigitsGrouped(0xFA9B,0x1);
+    
+//    config_interface();
+//    config_stepper();
+//    
+//    macro_enable_interrupts();
+//    
+//    stepper_home();
     
     while (1) {
-        //SYS_Tasks();
-        //MAIN_Tasks();
-        interface_set_mode();
+        SYS_Tasks();
+        MAIN_Tasks();
+        //interface_set_mode();
 //        if (!prt_SWT_SWT7) {
 //            interface_set_mode();
 //        }

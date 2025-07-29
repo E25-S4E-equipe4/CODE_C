@@ -11,8 +11,8 @@ typedef enum {
     MODE_MANUAL,  
     MODE_LOCK
 } Etat;
-Etat current_state = MODE_AUTO;
-#define DEBOUNCE_DELAY_MS 20
+Etat current_state = MODE_LOCK;
+#define DEBOUNCE_DELAY_MS 300
 
 int hauteur = 0;
 int hauteur_manuel = 0;
@@ -29,8 +29,8 @@ void config_interface(void) {
     LCD_WriteStringAtPos("Hauteur: ", 0, 0);
     LCD_WriteIntAtPos(current_distance, 3, 0, 8, 0);
     LCD_WriteStringAtPos("Mode: ", 1, 0);
-    LCD_WriteStringAtPos("Auto  ", 1, 6);
-    lat_LED8_G = 1;
+    LCD_WriteStringAtPos("Lock  ", 1, 6);
+    lat_LED8_R = 1;
    // --- Boutons
     tris_BTN_BTND = 1;          
     tris_BTN_BTNC = 1;          
@@ -94,7 +94,6 @@ void interface_set_mode(void) {
                     stepper_move(0, 50);
                 }
                 else {
-                    int i=0;
                     distances_IR = 0;
                     distance_IR_1 = 0;
                     distance_IR_2 = 0;
