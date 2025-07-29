@@ -60,21 +60,21 @@ void config_stepper(){
     //ANSELBbits.ANSB8 = 0; // RB8 (BTNR) disabled analog
     
     //Configuration des broches de sortie
-    TRISCbits.TRISC1 = 0; //RPC1 en output, PMODA_2 sur Basys, sortie step
-    TRISCbits.TRISC2 = 0; //RPC2 en output, PMODA_1 sur Basys, sortie direction
-    TRISCbits.TRISC3 = 0; //RPC3 en output, PMODA_7 sur basys, sortie reset
-    TRISCbits.TRISC4 = 0; //RPC4 en output, PMODA_3 sur Basys, sortie sleep
+    TRISDbits.TRISD11 = 0;   //RPD11 en output, PMODB_2 sur Basys, sortie step
+    TRISDbits.TRISD9  = 0;   //RPD9  en output, PMODB_1 sur Basys, sortie direction
+    TRISCbits.TRISC14 = 0;   //RPC14 en output, PMODB_7 sur basys, sortie reset
+    TRISDbits.TRISD10 = 0;   //RPD10 en output, PMODB_3 sur Basys, sortie sleep
     
     //Configuration de broche d'entree
-    TRISGbits.TRISG7 = 1; //RPG7 en input, PMODA_8 sur Basys, entree limit switch
-    ANSELGbits.ANSG7 = 0; //RPG7 disabled analog
+    TRISDbits.TRISD0 = 1; //RPD0 en input, PMODB_8 sur Basys, entree limit switch
+    //ANSELDbits.ANSD0 = 0; //RPD0 disabled analog
     
-    RPC1R = 0b1011; //broche RPC1 configure pour sortir le PWM de OC3, sur PMODA_2 sur Basys
+    RPD11R = 0b1011; //broche RPD11 configure pour sortir le PWM de OC4, sur PMODB_2 sur Basys
     
-    LATCbits.LATC1 = 0; //RPC1 initialise a 0
-    LATCbits.LATC2 = 0; //RPC2 initialise a 0
-    LATCbits.LATC3 = 1; //Reset a 1 (active low, donc reset disable)
-    LATCbits.LATC4 = 0; //Sleep a 0 (active low, donc sleep enable)
+    LATDbits.LATD11 = 0; //RPD11 initialise a 0
+    LATDbits.LATD9  = 0; //RPD9  initialise a 0
+    LATCbits.LATC14 = 1; //Reset a 1 (active low, donc reset disable)
+    LATDbits.LATD10 = 0; //Sleep a 0 (active low, donc sleep enable)
     
     //Configuration de Timer 2
     T2CON = 0;
@@ -86,12 +86,12 @@ void config_stepper(){
     // a 100 Hz, le moteur aura une vitesse de 0.5 tour/s (1 tour = 200 pas)
     // 600 Hz = 3 tours/s et PR2 = 312
     
-    //Configuration de OC3
-    OC3CON = 0; //Initialise le OC3 a 0. Configure le timer 2 comme reference
-    OC3CONbits.OCM = 0b110; //Mode sans detection de faute
+    //Configuration de OC4
+    OC4CON = 0; //Initialise le OC4 a 0. Configure le timer 2 comme reference
+    OC4CONbits.OCM = 0b110; //Mode sans detection de faute
     
-    OC3R = 0; //rapport cyclique initial
-    OC3RS = 156; // PR2 * 50% de rapport cyclique
+    OC4R = 0; //rapport cyclique initial
+    OC4RS = 156; // PR2 * 50% de rapport cyclique
     
     
     //Configuration d'interrupt
@@ -121,20 +121,20 @@ void config_stepper(){
 void stepper_home(){
     config_stepper();       //Reconfiguration des timer et des interrupts du stepper
     
-    LATCbits.LATC4 = 1; //Sleep mode off
+    LATDbits.LATD10 = 1; //Sleep mode off
     
-    LATCbits.LATC2 = 1;     //Direction descendre
+    LATDbits.LATD9 = 1;     //Direction descendre
     
     //Demarrage du Timer 2
     T2CONbits.ON = 1;
     
-    //Demarrage de OC3
-    OC3CONbits.ON = 1;
+    //Demarrage de OC4
+    OC4CONbits.ON = 1;
         
-    while(!PORTGbits.RG7);  //Limite switch RPG7
+    while(!PORTDbits.RD0);  //Limite switch RPD0    PMODB_8
         
-    //Arret de OC3
-    OC3CONbits.ON = 0;
+    //Arret de OC4
+    OC4CONbits.ON = 0;
     
     //Arret du Timer 2
     T2CONbits.ON = 0;
@@ -142,7 +142,7 @@ void stepper_home(){
     position_pas = 0;
     
     
-    LATCbits.LATC4 = 0; //Sleep mode on
+    LATDbits.LATD10 = 0; //Sleep mode on
     
     //Fin de la fonction
 }
@@ -168,7 +168,7 @@ void stepper_home(){
 void stepper_move(bool direction, uint8_t dst){
     config_stepper();       //Reconfiguration des timer et des interrupts du stepper
     
-    LATCbits.LATC4 = 1; //Sleep mode off
+    LATDbits.LATD10 = 1; //Sleep mode off
     
     direction_globale = direction;
     
@@ -178,7 +178,7 @@ void stepper_move(bool direction, uint8_t dst){
     uint16_t pos_initiale = position_pas;
     uint16_t pos_finale = 0;
     
-    LATCbits.LATC2 = direction; //Selectionne la sortie de direction
+    LATDbits.LATD9 = direction; //Selectionne la sortie de direction
     
     if(!direction_globale){     //Monter
         
@@ -187,15 +187,15 @@ void stepper_move(bool direction, uint8_t dst){
         //Demarrage du Timer 2
         T2CONbits.ON = 1;
         
-        //Demarrage de OC3
-        OC3CONbits.ON = 1;
+        //Demarrage de OC4
+        OC4CONbits.ON = 1;
         
         while(position_pas < pos_finale && position_pas < max_hauteur_pas){
             interface_LCD_height(stepper_get_height());
         }
         
-        //Arret de OC3
-        OC3CONbits.ON = 0;
+        //Arret de OC4
+        OC4CONbits.ON = 0;
         
         //Arret du Timer 2
         T2CONbits.ON = 0;
@@ -212,15 +212,15 @@ void stepper_move(bool direction, uint8_t dst){
         //Demarrage du Timer 2
         T2CONbits.ON = 1;
         
-        //Demarrage de OC3
-        OC3CONbits.ON = 1;
+        //Demarrage de OC4
+        OC4CONbits.ON = 1;
         
         while(position_pas > pos_finale && position_pas > min_hauteur_pas){
         interface_LCD_height(stepper_get_height());
         }
         
-        //Arret de OC3
-        OC3CONbits.ON = 0;
+        //Arret de OC4
+        OC4CONbits.ON = 0;
         
         //Arret du Timer 2
         T2CONbits.ON = 0;
@@ -228,7 +228,7 @@ void stepper_move(bool direction, uint8_t dst){
     }
     
     
-    LATCbits.LATC4 = 0; //Sleep mode on
+    LATDbits.LATD10 = 0; //Sleep mode on
     
     //Fin de la fonction
 }

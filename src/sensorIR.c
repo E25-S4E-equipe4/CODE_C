@@ -43,10 +43,12 @@ void timer3_stop(void){
 }
 
 void config_IR(void) {
-    TRISGbits.TRISG6 = 1;
-    TRISGbits.TRISG9 = 1;
-    ANSELGbits.ANSG6 = 1;
-    ANSELGbits.ANSG9 = 1;
+    TRISBbits.TRISB5 = 1;       //RPB5 Analog discovery header BIN2 with AN5
+    //TRISBbits.TRISB3 = 1;       //RPB3 Analog discovery header AIN1 with AN3
+    TRISDbits.TRISD1 = 1;       //RPD1 PMODB_9 with AN24
+    ANSELBbits.ANSB5 = 1;
+    ANSELDbits.ANSD1 = 1;
+    //ANSELBbits.ANSB3 = 1;
     macro_disable_interrupts;
     echantillions = 0;
     sensor_distance_1 = 0;
@@ -61,9 +63,11 @@ void config_IR(void) {
     AD1CON3bits.ADCS = 2;      // ADC clock divisor
     AD1CON3bits.SAMC = 4;      // Sample time
 
-    //AD1CSSL = (1 << 16) | (1 << 19);  // Sélection des canaux AN16 et AN19
-    AD1CSSLbits.CSSL16 = 1;
-    AD1CSSLbits.CSSL19 = 1;
+    //AD1CSSL = (1 << 5) | (1 << 24);  // Sélection des canaux AN5 et AN24
+    AD1CSSL = 0;
+    //AD1CSSLbits.CSSL3 = 1;
+    AD1CSSLbits.CSSL5 = 1;
+    AD1CSSLbits.CSSL24 = 1;
 
     IFS0bits.AD1IF = 0;         // Effacer le flag d'interruption
     IEC0bits.AD1IE = 1;         // Activer interuption
