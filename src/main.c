@@ -66,7 +66,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "app_commands.h"
 #include "interface.h"
 #include "../projet_mplab.X/Stepper.h"
-#include "../projet_mplab.X/Config_Tests_DRV_stepper.h"
+//#include "../projet_mplab.X/Config_Tests_DRV_stepper.h"
 
 
 
@@ -215,8 +215,8 @@ void MAIN_Initialize ( void )
 
     mainData.handleUSART0 = DRV_HANDLE_INVALID;
 
-    UDP_Initialize(); // Initialisation de du serveur et client UDP
-    LCD_Init(); // Initialisation de l'écran LCD
+    //UDP_Initialize(); // Initialisation de du serveur et client UDP
+    //LCD_Init(); // Initialisation de l'écran LCD
     //ACL_Init(); // Initialisation de l'accéléromètre
     //SSD_Init(); // Initialisation du Timer4 et de l'accéléromètre
     //Interupt_ACL_Init(); //Initialisation de l'interuption de l'accéléromètre
@@ -278,11 +278,11 @@ void MAIN_Tasks ( void )
             //LedTask(); //toggle LED1 à tout les 500000 cycles
             //accel_tasks(); // 
             //RGB_Task();
-            UDP_Tasks();
             //ManageSwitches();
         	//JB1Toggle();
             //LED0Toggle();
             interface_set_mode();
+            //UDP_Tasks();
             break;
         }
 

@@ -36,6 +36,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
  *******************************************************************************/
 //DOM-IGNORE-END
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifndef TCPIP_COMMANDS_H
 #define	TCPIP_COMMANDS_H

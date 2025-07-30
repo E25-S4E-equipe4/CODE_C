@@ -49,6 +49,7 @@
 void LCD_Init();
 void LCD_InitSequence(unsigned char bDisplaySetOptions);
 void LCD_WriteStringAtPos(char *szLn, unsigned char idxLine, unsigned char bAdr);
+void LCD_WriteIntAtPos(int value, int nbDigit, unsigned char idxLine, unsigned char idxPos, int erase);
 void LCD_DisplaySet(unsigned char bDisplaySetOptions);
 void LCD_DisplayClear();
 void LCD_DisplayShift(unsigned char fRight);

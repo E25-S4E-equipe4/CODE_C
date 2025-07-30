@@ -190,7 +190,6 @@
         <itemPath>../src/main.h</itemPath>
         <itemPath>../src/sensorIR.h</itemPath>
         <itemPath>../src/interface.h</itemPath>
-        <itemPath>Config_Tests_DRV_stepper.h</itemPath>
         <itemPath>Stepper.h</itemPath>
       </logicalFolder>
       <itemPath>../src/config_bits.h</itemPath>
@@ -362,7 +361,6 @@
         <itemPath>../src/main.c</itemPath>
         <itemPath>../src/sensorIR.c</itemPath>
         <itemPath>../src/interface.c</itemPath>
-        <itemPath>Config_Tests_DRV_stepper.c</itemPath>
         <itemPath>Stepper.c</itemPath>
         <itemPath>main_stepper.c</itemPath>
       </logicalFolder>

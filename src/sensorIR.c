@@ -17,6 +17,7 @@
 #include <xc.h>
 #include "sensorIR.h"
 #include "config.h"
+#include "../projet_mplab.X/micro.h"
 //#include "config_bits.h"
 
 #define NB_ECH 2500

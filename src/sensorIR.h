@@ -38,7 +38,10 @@ void config_IR();
  *      Le premier élément est AN16 et le deuxième AN19
  */
 uint16_t * IR_get_dst();
-    
+extern uint32_t sensor_distance_1;
+extern uint32_t sensor_distance_2;
+extern volatile uint16_t echantillions;
+//extern int modeADC;
     
 #ifdef __cplusplus
 }

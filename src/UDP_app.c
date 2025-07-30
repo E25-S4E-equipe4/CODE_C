@@ -220,8 +220,8 @@ void _UDP_ClientTasks() {
                 break;
             }
             SYS_CONSOLE_PRINT("Avail %d\r\n", TCPIP_UDP_PutIsReady(appData.clientSocket));
-            UDP_bytes_to_send = strlen(UDP_Send_Buffer);
-            SYS_CONSOLE_PRINT("Client: Sending %s", UDP_Send_Buffer);
+            //UDP_bytes_to_send = strlen(UDP_Send_Buffer);
+            //SYS_CONSOLE_PRINT("Client: Sending %s", UDP_Send_Buffer);
             TCPIP_UDP_ArrayPut(appData.clientSocket, (uint8_t*)UDP_Send_Buffer, UDP_bytes_to_send);
             
            // Envoie les données (flush = envoie obligatoire des données dans la pile, peu importe la quantité de données)
@@ -258,7 +258,18 @@ void _UDP_ClientTasks() {
                     UDP_bytes_received = sizeof(UDP_Receive_Buffer)-1;
                 }
                 UDP_Receive_Buffer[UDP_bytes_received] = '\0';    //append a null to display strings properly
+                
+                
+                if(strncmp(UDP_Receive_Buffer,"Oui",3) == 0){
+                    flag_fft = 1;
+                }
                 SYS_CONSOLE_PRINT("\r\nClient: Client received %s\r\n", UDP_Receive_Buffer);
+                
+                
+                //Ecriture du temps de delais entre l'envoie et la reception par UDP
+                //SYS_CONSOLE_PRINT("\r\nDelais UDP: %d us\r\n", delais_UDP);
+                //delais_UDP = 0;
+                
                 
                 // Pas de fermeture du socket on veux une connection continue
                 appData.clientState = UDP_TCPIP_WAITING_FOR_COMMAND;
@@ -381,6 +392,9 @@ void _UDP_ServerTasks( void ) {
 
 void UDP_Tasks ( void )
 {
+    
+   
+    
     SYS_STATUS          tcpipStat;
     const char          *netName, *netBiosName;
     static IPV4_ADDR    dwLastIP[2] = { {-1}, {-1} };
@@ -398,6 +412,9 @@ void UDP_Tasks ( void )
      */
     switch(appData.clientState) {
         case UDP_TCPIP_WAIT_INIT:
+            
+            
+            
             //SYS_CONSOLE_MESSAGE("WAIT_INIT");
             tcpipStat = TCPIP_STACK_Status(sysObj.tcpip);
             if (tcpipStat < 0) { // some error occurred
@@ -428,6 +445,9 @@ void UDP_Tasks ( void )
             break;
 
         case UDP_TCPIP_WAIT_FOR_IP:
+            
+            
+            
             // Si l'adresse IP d'un interface a changé, afficher la nouvelle adresse sur la console.
             nNets = TCPIP_STACK_NumberOfNetworksGet();
             for (i = 0; i < nNets; i++) {

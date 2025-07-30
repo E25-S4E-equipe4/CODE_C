@@ -5,6 +5,8 @@
 #include "sensorIR.h"
 #include <xc.h>
 #include <string.h>
+//#include "../projet_mplab.X/micro.h"
+
 typedef enum {
     
     MODE_AUTO,    
@@ -22,6 +24,7 @@ uint16_t distance_IR_1;
 uint16_t distance_IR_2;
 static int current_distance = 000;
 static bool hand_detected = false;
+uint8_t reussi;
 
 // Initialise les entrées (boutons) et sorties (DELs), et affiche l'état initial.
 void config_interface(void) {
@@ -53,6 +56,16 @@ void config_interface(void) {
     ansel_SWT_SWT7 = 0; //No analog read
     tris_SWT_SWT6 = 1;  //Switch 6 (B10) set as input
     ansel_SWT_SWT6 = 0; //No analog read
+    
+    // PMODB - Seulement pour la communication
+    //PMODB_4
+    TRISDbits.TRISD8 = 0;       //PMODB_4 RPD8 en output
+    LATDbits.LATD8 = 0;
+    //ANSELDbits.ANSD8 = 0;
+    //PMODB_10
+    TRISCbits.TRISC13 = 1;      //PMODB_10 RPC13 en input
+    //ANSELCbits.ANSC13 = 0;
+    reussi = 0;
 }
 
 // Change le mode actuel et met à jour l'affichage LCD et les couleurs des DELs RGB.
@@ -64,29 +77,35 @@ void interface_set_mode(void) {
 //        ##                                                                             ##
 //        #################################################################################
         case MODE_AUTO:  
-            LATD = 0;
+            lat_LED8_R = 0;
             lat_LED8_G = 1;
+            lat_LED8_B = 0;
             LATACLR = 0b0000000000011110;
             LCD_WriteStringAtPos("Auto  ", 1, 6);
             current_distance = stepper_get_height();
             interface_LCD_height(current_distance);
             if (prt_BTN_BTNR == 1) { delay_ms(DEBOUNCE_DELAY_MS); current_state = MODE_MANUAL;}
             //Appelle de la detection de voix de la FFT
-//            start_voix();
-//            if (get_FFT()) {
-//                distances_IR = IR_get_dst();
-//                distance_IR_1 = distances_IR[0]; //AN16 distance pour monter
-//                distance_IR_2 = distances_IR[1]; //AN19 distance pour descendre
-//                if (distance_IR_1 > 300) {
-//                    stepper_move(0, distance_IR_1);
-//                }
-//                if (distance_IR_2 > 300) {
-//                    stepper_move(1, distance_IR_2);
-//                }
-//            }
+            LATDbits.LATD8 = 1;                 //Commence la lecture de Signal de FFT (PMODB_4)
+            reussi = PORTCbits.RC13;
+            if (reussi) {                       //Lecture du signal FFT reussi du PMODB_10
+                LATAbits.LATA5 = 1;
+                distances_IR = IR_get_dst();
+                distance_IR_1 = distances_IR[0]; //AN5  distance pour monter
+                distance_IR_2 = distances_IR[1]; //AN24 distance pour descendre
+                distance_IR_1 = (distance_IR_1 * 1.0601 - 25.588) - 4; //AN5  pointe vers le haut
+                distance_IR_2 = (distance_IR_2 * 1.0601 - 25.588) - 4; //AN24 pointe vers le haut
+                if (distance_IR_1 < 300) {
+                    stepper_move(0, distance_IR_1);
+                }
+                if (distance_IR_2 < 250) {
+                    stepper_move(1, distance_IR_2);
+                }
+                LATDbits.LATD8 = 0;             //Commence la lecture de Signal de FFT (PMODB_4)
+            }
             
             //Simulation de la detection de la voix avec le bouton du centre en mode auto
-            if (prt_BTN_BTNC) {
+            else if (prt_BTN_BTNC) {
                 delay_ms(DEBOUNCE_DELAY_MS); 
                 //Overwrite de la lecture des capteurs de distances si la switch 6 est active
                 if (prt_SWT_SWT6) {
@@ -105,10 +124,10 @@ void interface_set_mode(void) {
 //                    distance_IR_1 = distance_IR_1 / 3; //AN19 pointe vers le bas
 //                    distance_IR_2 = distance_IR_2 / 3; //AN19 pointe vers le bas
                     distances_IR = IR_get_dst();
-                    distance_IR_1 = distances_IR[0]; //AN16 pointe vers le haut
-                    distance_IR_2 = distances_IR[1]; //AN19 pointe vers le bas
-                    distance_IR_1 = distance_IR_1 * 1.0601 - 25.588; //AN16 pointe vers le haut
-                    distance_IR_2 = distance_IR_2 * 1.0601 - 25.588; //AN16 pointe vers le haut
+                    distance_IR_1 = distances_IR[0]; //AN5  pointe vers le haut
+                    distance_IR_2 = distances_IR[1]; //AN24 pointe vers le bas
+                    distance_IR_1 = (distance_IR_1 * 1.0601 - 25.588) - 4; //AN5  pointe vers le haut
+                    distance_IR_2 = (distance_IR_2 * 1.0601 - 25.588) - 4; //AN24 pointe vers le haut
                     if (distance_IR_1 < 300) {
                         interface_hand_confirm(1);
                         stepper_move(0, distance_IR_1);
@@ -119,6 +138,9 @@ void interface_set_mode(void) {
                     }
                 }
             }
+            else {
+                LATAbits.LATA5 = 0;
+            }
             interface_hand_confirm(0);
             break;
             
@@ -128,7 +150,9 @@ void interface_set_mode(void) {
 //        ##                                                                             ##
 //        #################################################################################
         case MODE_MANUAL:  
-            LATD = 0;
+            LATDbits.LATD8 = 0;
+            lat_LED8_R = 0;
+            lat_LED8_G = 0;
             lat_LED8_B = 1;
             LATACLR = 0b0000000000011110;
             LCD_WriteStringAtPos("Manual", 1, 6);
@@ -158,9 +182,11 @@ void interface_set_mode(void) {
 //        ##                             MODE LOCK                                       ##
 //        ##                                                                             ##
 //        #################################################################################
-        case MODE_LOCK:  
-            LATD = 0;
+        case MODE_LOCK:
+            LATDbits.LATD8 = 0;
             lat_LED8_R = 1;
+            lat_LED8_G = 0;
+            lat_LED8_B = 0;
             LATA = 0;
             LCD_WriteStringAtPos("Lock  ", 1, 6);
             if (prt_BTN_BTNR == 1){ delay_ms(DEBOUNCE_DELAY_MS); current_state = MODE_AUTO;}
@@ -170,37 +196,37 @@ void interface_set_mode(void) {
 }
 
 // Vérifie les boutons et applique un antirebond logiciel. Retourne un code selon le bouton pressé.
-uint8_t interface_get_bouton(void) {
-    //if (current_state = MODE_MANUAL){
-        
-    //}
-    if (prt_BTN_BTNU == 1) { 
-        delay_ms(DEBOUNCE_DELAY_MS); 
-        LATAbits.LATA1 = 1; 
-        hauteur = hauteur + 5;
-        interface_LCD_height(hauteur);
-    }
-    if (prt_BTN_BTNC == 1) { 
-        delay_ms(DEBOUNCE_DELAY_MS); 
-        LATAbits.LATA2 = 1; 
-        //envoyer la hauteur
-    }
-    if (prt_BTN_BTND == 1) { 
-        delay_ms(DEBOUNCE_DELAY_MS); 
-        LATAbits.LATA3 = 1;
-        hauteur= hauteur - 5;
-        interface_LCD_height(hauteur);
-    }
-    if (prt_BTN_BTNR == 1) { 
-        delay_ms(DEBOUNCE_DELAY_MS); 
-        LATAbits.LATA4 = 1; 
-        interface_set_mode();
-    }
-    if (prt_BTN_BTNL == 1) { 
-        delay_ms(DEBOUNCE_DELAY_MS); 
-        LATAbits.LATA5 = 1; 
-    }
-}
+//uint8_t interface_get_bouton(void) {
+//    //if (current_state = MODE_MANUAL){
+//        
+//    //}
+//    if (prt_BTN_BTNU == 1) { 
+//        delay_ms(DEBOUNCE_DELAY_MS); 
+//        LATAbits.LATA1 = 1; 
+//        hauteur = hauteur + 5;
+//        interface_LCD_height(hauteur);
+//    }
+//    if (prt_BTN_BTNC == 1) { 
+//        delay_ms(DEBOUNCE_DELAY_MS); 
+//        LATAbits.LATA2 = 1; 
+//        //envoyer la hauteur
+//    }
+//    if (prt_BTN_BTND == 1) { 
+//        delay_ms(DEBOUNCE_DELAY_MS); 
+//        LATAbits.LATA3 = 1;
+//        hauteur= hauteur - 5;
+//        interface_LCD_height(hauteur);
+//    }
+//    if (prt_BTN_BTNR == 1) { 
+//        delay_ms(DEBOUNCE_DELAY_MS); 
+//        LATAbits.LATA4 = 1; 
+//        interface_set_mode();
+//    }
+//    if (prt_BTN_BTNL == 1) { 
+//        delay_ms(DEBOUNCE_DELAY_MS); 
+//        LATAbits.LATA5 = 1; 
+//    }
+//}
 
 // Met à jour la valeur de la hauteur affichée sur le LCD.
 void interface_LCD_height(uint16_t distance) {
