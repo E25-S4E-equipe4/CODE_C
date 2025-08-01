@@ -93,8 +93,8 @@ void interface_set_mode(void) {
                 distances_IR = IR_get_dst();
                 distance_IR_1 = distances_IR[0]; //AN5  distance pour monter
                 distance_IR_2 = distances_IR[1]; //AN24 distance pour descendre
-                distance_IR_1 = (distance_IR_1 * 1.0601 - 25.588) - 4; //AN5  pointe vers le haut
-                distance_IR_2 = (distance_IR_2 * 1.0601 - 25.588) - 4; //AN24 pointe vers le haut
+                distance_IR_1 = (distance_IR_1 * 1.0601 - 25.588); //AN5  pointe vers le haut
+                distance_IR_2 = (distance_IR_2 * 1.0601 - 25.588); //AN24 pointe vers le haut
                 if (distance_IR_1 < 300) {
                     stepper_move(0, distance_IR_1);
                 }
@@ -126,8 +126,8 @@ void interface_set_mode(void) {
                     distances_IR = IR_get_dst();
                     distance_IR_1 = distances_IR[0]; //AN5  pointe vers le haut
                     distance_IR_2 = distances_IR[1]; //AN24 pointe vers le bas
-                    distance_IR_1 = (distance_IR_1 * 1.0601 - 25.588) - 4; //AN5  pointe vers le haut
-                    distance_IR_2 = (distance_IR_2 * 1.0601 - 25.588) - 4; //AN24 pointe vers le haut
+                    distance_IR_1 = (distance_IR_1 * 1.0601 - 25.588); //AN5  pointe vers le haut
+                    distance_IR_2 = (distance_IR_2 * 1.0601 - 25.588); //AN24 pointe vers le haut
                     if (distance_IR_1 < 300) {
                         interface_hand_confirm(1);
                         stepper_move(0, distance_IR_1);
